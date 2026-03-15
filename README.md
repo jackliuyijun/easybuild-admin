@@ -107,3 +107,75 @@ yarn lint
 ```
 
 环境要求：`Node.js >= 18.17.0`。
+
+---
+
+## 七、 模版使用指南 — 创建后需改动的文件
+
+使用本模版创建新项目后，请按照以下清单逐一修改，完成项目初始化。
+
+### 1. 项目基础信息
+
+| 文件 | 需改动项 | 说明 |
+|------|----------|------|
+| `package.json` | `name`、`version` | 将 `"easybuild-admin"` 改为你的项目名称，版本号按需设置。 |
+| `src/app/layout.tsx` | `metadata.title`、`metadata.description` | 修改浏览器标签页标题与 SEO 描述，替换 `"EasyBuild Admin - 易构"` 为你的项目名称。 |
+| `src/config/login/login-config.ts` | `name`、`description`、`subDescription` | 登录页的品牌名称和描述文案，直接替换即可。 |
+| `public/favicon.ico` | 网站图标 | 替换为你自己的 Favicon。 |
+
+### 2. 环境变量与接口地址
+
+| 文件 | 需改动项 | 说明 |
+|------|----------|------|
+| `.env.development` | `NEXT_PUBLIC_API_URL`、`NEXT_PUBLIC_APP_NAME`、`NEXT_PUBLIC_UPLOAD_API_URL` | 开发环境的后端 API 地址和文件上传地址。 |
+| `.env.test` | 同上 | 测试环境配置。 |
+| `.env.production` | 同上 | 生产环境配置。 |
+| `src/config/api-url.ts` | `API_URLS` 对象 | **核心文件**。删除模版中的示例接口路径（如 `brand`、`banner`、`goods` 等），替换为你自己的业务接口地址。`auth` 部分如果后端遵循相同登录协议则可保留。 |
+
+### 3. 业务页面与 API 模块（需删除 / 替换）
+
+模版内置的以下目录包含 **示例业务代码**，创建新项目时应 **全部删除** 并替换为自己的业务模块：
+
+| 目录 / 文件 | 说明 |
+|-------------|------|
+| `src/app/base/` | 示例：品牌、分类、分组、标签管理页面 |
+| `src/app/commodity/` | 示例：商品、SPU 管理页面 |
+| `src/app/operation/` | 示例：Banner 运营管理页面 |
+| `src/app/order/` | 示例：订单、退款管理页面 |
+| `src/app/customer/` | 示例：用户/会员管理页面 |
+| `src/app/businesses/` | 示例：商超管理页面 |
+| `src/app/system/` | 示例：字典管理页面 |
+| `src/api/` 中的业务文件 | 如 `goods.ts`、`banner.ts`、`order.ts` 等，删除后按需新增自己的 API 模块。**保留** `http.ts`（Axios 封装）和 `upload.ts`（文件上传）。 |
+| `src/types/` 中的业务类型 | 如 `goods.ts`、`order.ts`、`category.ts` 等，删除后新增自己的类型定义。**保留** `api.ts`（通用响应类型）和 `token.ts`（Token 类型）。 |
+
+> **可保留的通用模块**：`src/app/auth/`（部门/角色/员工权限管理）和 `src/app/login/`（登录页）属于通用鉴权能力，如果后端接口兼容可直接复用。
+
+### 4. 菜单图标与颜色映射
+
+| 文件 | 需改动项 | 说明 |
+|------|----------|------|
+| `src/config/routes.ts` | `iconMap`、`colorMap` | 菜单图标和颜色由后端下发的 `resourceId` 匹配。删除模版中的示例映射（如 `brandManage`、`goodsInfoManage`），新增你自己的菜单 `resourceId` 对应的图标和颜色。图标从 `lucide-react` 中按需导入。 |
+
+### 5. 可选调整项
+
+| 文件 | 需改动项 | 说明 |
+|------|----------|------|
+| `src/config/constants.ts` | `API_CODE` | 如果后端返回的响应状态码字段不同（如用 `SUCCESS` 替代 `OK`），需要在此修改。 |
+| `src/config/theme-colors.ts` | 主题色配置 | 可新增/删除主题配色方案，或修改默认主题。 |
+| `src/config/pagination.ts` | `DEFAULT_PAGE_SIZE`、`PAGE_SIZE_OPTIONS` | 分页默认值，按业务需要调整。 |
+| `src/middleware.ts` | 路由守卫规则 | 当前仅放行 `/login`，如需增加公开路由或加入 Token 校验逻辑，请在此修改。 |
+| `src/lib/auth.ts` | Token 存储键名 | 如果 Token 的 `localStorage` 键名需与后端约定不同，在此修改 `access-token` 和 `user-info`。 |
+| `src/api/http.ts` | 请求头 / 超时配置 | 如需调整 Token 请求头名称（默认 `Access-Token`）或超时时间（默认 `10000ms`），在此修改。 |
+
+### 快速上手检查清单
+
+```text
+✅ 1. 修改 package.json 项目名
+✅ 2. 配置三个 .env 文件的 API 地址
+✅ 3. 修改 login-config.ts 和 layout.tsx 中的品牌信息
+✅ 4. 删除 src/app/ 下的示例业务页面
+✅ 5. 清理 src/api/ 和 src/types/ 中的示例文件
+✅ 6. 在 api-url.ts 中定义自己的接口路径
+✅ 7. 在 routes.ts 中配置菜单图标映射
+✅ 8. 替换 public/favicon.ico
+```
