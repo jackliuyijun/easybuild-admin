@@ -10,7 +10,6 @@ import { NavUser } from "@/components/layout/nav-user"
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -64,9 +63,7 @@ const BreadcrumbNav = memo(function BreadcrumbNav({
         {parent && (
           <>
             <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href={parent.href}>
-                {parent.label}
-              </BreadcrumbLink>
+              <span>{parent.label}</span>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
           </>
