@@ -9,7 +9,7 @@ export interface TableSelection {
 }
 
 // 列配置接口
-export interface TableColumn<T, K extends keyof T = keyof T> {
+export type TableColumn<T, K extends keyof T = keyof T> = K extends any ? {
     key: K extends string ? K : string           // 列标识必须是 T 的键
     title: string                                // 列标题
     width?: number | string                      // 列宽度
@@ -19,7 +19,7 @@ export interface TableColumn<T, K extends keyof T = keyof T> {
     render?: (value: T[K], record: T, index: number) => ReactNode  // 更严格的渲染函数类型
     sortable?: boolean                          // 是否可排序
     filterable?: boolean                        // 是否可筛选
-}
+} : never;
 
 // 分页配置接口
 export interface TablePagination {

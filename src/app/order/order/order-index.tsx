@@ -21,7 +21,7 @@ import { usePageTitle, useSearchCollapse, useSearchArea } from '@/store'
 import { getList } from '@/api/order'
 import { getContainerDropdownList } from '@/api/container'
 import { getMerchantDropdownList } from '@/api/merchant'
-import type { OrderInfo, OrderQueryParams } from '@/types/order'
+import type { OrderInfo, OrderQueryParams, AmountInfo } from '@/types/order'
 import {
   ORDER_STATUS_OPTIONS,
   getOrderStatusConfig,
@@ -187,7 +187,7 @@ export default function OrderPage() {
       key: 'goodsName',
       title: '商品名称',
       width: 200,
-      render: (_, record) => (
+      render: (_: string, record: OrderInfo) => (
         <div className="space-y-1">
           <div className="font-medium truncate" title={record.goodsName}>{record.goodsName}</div>
         </div>
@@ -199,7 +199,7 @@ export default function OrderPage() {
       title: '订单金额',
       width: 100,
       align: 'right',
-      render: (_, record) => {
+      render: (_: number | AmountInfo, record: OrderInfo) => {
         const amount = typeof record.totalAmount === 'object'
           ? record.totalAmount.parsedValue
           : record.totalAmount
@@ -213,7 +213,7 @@ export default function OrderPage() {
       title: '状态',
       width: 80,
       align: 'center',
-      render: (_, record) => {
+      render: (_: number, record: OrderInfo) => {
         const config = getOrderStatusConfig(record.orderStatus)
         return (
           <Badge variant="outline" className={`border-${config.color}-500 text-${config.color}-700`}>
@@ -240,23 +240,13 @@ export default function OrderPage() {
         <span className="text-sm">{value || '-'}</span>
       )
     },
-
-    {
-      key: 'containerName',
-      title: '货柜名称',
-      width: 150,
-      align: 'center',
-      render: (value) => (
-        <span className="text-sm">{value || '-'}</span>
-      )
-    },
     {
       key: 'action' as any,
       title: '操作',
       width: 60,
       fixed: 'right',
       align: 'center',
-      render: (_, record) => (
+      render: (_: any, record: OrderInfo) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

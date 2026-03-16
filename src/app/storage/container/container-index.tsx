@@ -245,7 +245,7 @@ export function ContainerPage() {
             ) as any,
             width: 40,
             align: 'center',
-            render: (_, record) => (
+            render: (_: any, record: Container) => (
                 <Checkbox
                     checked={selectedIds.includes(record.containerId)}
                     onCheckedChange={(checked) => handleSelect(record.containerId, checked as boolean)}
@@ -275,7 +275,7 @@ export function ContainerPage() {
             title: '状态',
             width: 100,
             align: 'center',
-            render: (_, record) => {
+            render: (_: number, record: Container) => {
                 const isEnabled = record.forbiddenFlag === FORBIDDEN_FLAG_CONFIG.enable.value;
                 return (
                     <Switch
@@ -301,7 +301,7 @@ export function ContainerPage() {
             title: '操作',
             width: 100,
             align: 'center',
-            render: (_, record) => (
+            render: (_: any, record: Container) => (
                 <div className="flex gap-2 justify-center">
                     <Button variant="ghost" size="icon" onClick={() => handleEdit(record)}><Edit className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(record)} className="text-red-500"><Trash2 className="h-4 w-4" /></Button>
