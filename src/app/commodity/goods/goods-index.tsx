@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import dynamic from 'next/dynamic'
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { GoodsWizard } from "./goods-wizard"
 import { cn } from "@/lib/utils"
 import type { GoodsItem, GoodsQueryParams, GoodsListResponse } from "@/types/goods"
-import { CategorySelector, CategoryValue } from "@/components/custom/category-selector"
+import { CategoryCascader, CategoryCascaderValue } from "@/components/custom/category-cascader"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -42,7 +42,7 @@ export function GoodsPage() {
     }>({ open: false })
     const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
     const [selectedIds, setSelectedIds] = useState<string[]>([])
-    const [categoryValue, setCategoryValue] = useState<CategoryValue>({
+    const [categoryValue, setCategoryValue] = useState<CategoryCascaderValue>({
         firstCategoryId: '',
         secondCategoryId: '',
         thirdCategoryId: ''
@@ -283,22 +283,18 @@ export function GoodsPage() {
             align: 'center'
         },
         {
-            key: 'firstCategoryName',
-            title: '一级分类',
-            width: 120,
-            align: 'center'
-        },
-        {
-            key: 'secondCategoryName',
-            title: '二级分类',
-            width: 120,
-            align: 'center'
-        },
-        {
-            key: 'thirdCategoryName',
-            title: '三级分类',
-            width: 120,
-            align: 'center'
+            key: 'firstCategoryName' as any,
+            title: '分类',
+            width: 200,
+            align: 'left',
+            render: (_, record: GoodsItem) => {
+                const names = [
+                    record.firstCategoryName,
+                    record.secondCategoryName,
+                    record.thirdCategoryName
+                ].filter(Boolean)
+                return names.join('/') || '-'
+            }
         },
         {
             key: 'brandName',
@@ -321,38 +317,37 @@ export function GoodsPage() {
             )
         },
         {
-            key: 'action' as keyof GoodsItem,
+            key: 'action' as any,
             title: '操作',
-            width: 80,
+            width: 100,
             fixed: 'right',
             align: 'center',
-            render: (_, record) => (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(record)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            编辑
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                            onClick={() => handleDelete(record)}
-                            className="text-red-600 focus:text-red-600"
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            删除
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+            render: (_, record: GoodsItem) => (
+                <div className="flex items-center justify-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                        onClick={() => handleEdit(record)}
+                        title="编辑"
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDelete(record)}
+                        title="删除"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
             )
         }
     ]
 
-    const handleCategoryChange = (value: CategoryValue) => {
+    const handleCategoryChange = (value: CategoryCascaderValue) => {
         setCategoryValue(value)
         setCurrentPage(1)
         setSelectedIds([])
@@ -404,10 +399,9 @@ export function GoodsPage() {
                         </div>
 
                         <div className="w-[240px]">
-                            <CategorySelector
+                            <CategoryCascader
                                 value={categoryValue}
                                 onChange={handleCategoryChange}
-                                groupId="goods"
                                 placeholder="选择分类..."
                                 maxLevel={3}
                                 width="240px"
