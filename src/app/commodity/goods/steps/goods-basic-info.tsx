@@ -7,7 +7,7 @@ import type { CustomFormRef, FieldType, FormField } from "@/components/custom/fo
 import type { GoodsItem } from "@/types/goods"
 import type { UseFormReturn } from "react-hook-form"
 import { getBrandDropdownList } from "@/api/brand"
-import { getCategoryDropdownList } from "@/api/category"
+import { CategoryCascader, CategoryCascaderValue } from "@/components/custom/category-cascader"
 import {
     SALE_TYPE_OPTIONS,
     SKU_TYPE_OPTIONS,
@@ -34,9 +34,7 @@ const formSchema = z.object({
         .min(1, "商品名称不能为空")
         .max(100, "商品名称不能超过100个字符"),
 
-    goodsNo: z.string("商品编码格式不正确")
-        .min(1, "商品编码不能为空")
-        .max(50, "商品编码不能超过50个字符"),
+    goodsNo: z.string().optional(),
 
     salePrice: z.coerce.number("请输入有效的销售价格")
         .min(0.01, "销售价格必须大于0")
@@ -52,7 +50,7 @@ const formSchema = z.object({
         .max(999999.99, "市场价格不能超过999999.99")
         .optional(),
 
-    saleType: z.coerce.number().min(1, "请选择销售类型").default(2),
+    saleType: z.coerce.number().min(1, "请选择销售类型").default(1),
     skuType: z.coerce.number().min(1, "请选择规格类型").default(1),
     distributionType: z.coerce.number().min(0, "请选择配送方式").default(2),
 
@@ -88,11 +86,6 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
     loading
 }, ref) => {
     // 状态定义
-    const [categoryOptions, setCategoryOptions] = useState({
-        first: [] as { value: string; label: string }[],
-        second: [] as { value: string; label: string }[],
-        third: [] as { value: string; label: string }[]
-    })
 
     const [brandOptions, setBrandOptions] = useState<{ value: string; label: string }[]>([])
     const formRef = useRef<CustomFormRef>(null)
@@ -116,21 +109,6 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
         }
     }
 
-    // 加载分类数据
-    const loadCategories = async (level: number, parentId?: string, keyword: string = '') => {
-        try {
-            const options = await getCategoryDropdownList({
-                level,
-                parentId,
-                categoryName: keyword,
-                groupId: 'goods'
-            })
-            return options
-        } catch (error) {
-            console.error('Failed to load categories:', error)
-            return []
-        }
-    }
 
     // 加载品牌数据
     useEffect(() => {
@@ -145,41 +123,6 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
         loadBrands()
     }, [])
 
-    // 处理初始数据
-    useEffect(() => {
-        const initializeData = async () => {
-            try {
-                // 加载一级分类
-                const firstOptions = await loadCategories(1)
-                setCategoryOptions(prev => ({
-                    ...prev,
-                    first: firstOptions
-                }))
-
-                // 如果是编辑模式，加载已选分类的选项
-                if (initialData) {
-                    if (initialData.firstCategoryId) {
-                        const secondOptions = await loadCategories(2, initialData.firstCategoryId)
-                        setCategoryOptions(prev => ({
-                            ...prev,
-                            second: secondOptions
-                        }))
-                    }
-                    if (initialData.secondCategoryId) {
-                        const thirdOptions = await loadCategories(3, initialData.secondCategoryId)
-                        setCategoryOptions(prev => ({
-                            ...prev,
-                            third: thirdOptions
-                        }))
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to initialize data:', error)
-            }
-        }
-
-        initializeData()
-    }, [initialData])
 
     // 字段配置
     const fields: FormField[] = [
@@ -217,116 +160,35 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             defaultValue: initialData?.brandId ? [initialData.brandId] : []
         },
         {
-            name: "firstCategoryId",
-            label: "一级分类",
-            type: "multiSelect",
-            placeholder: "请选择一级分类",
-            required: false,
-            multiple: false,
-            options: categoryOptions.first,
-            onSearch: async (keyword: string) => {
-                if (!keyword) return categoryOptions.first
-                const options = await loadCategories(1, undefined, keyword)
-                setCategoryOptions(prev => ({
-                    ...prev,
-                    first: options
-                }))
-                return options
-            },
-            onChange: async (value: string, form: UseFormReturn) => {
-                // 更新一级分类名称和清空下级分类
-                const selectedOption = categoryOptions.first.find(opt => opt.value === value)
-                form.setValue('firstCategoryName', selectedOption?.label || '')
-                form.setValue('secondCategoryId', '')
-                form.setValue('secondCategoryName', '')
-                form.setValue('thirdCategoryId', '')
-                form.setValue('thirdCategoryName', '')
-
-                // 更新分类选项
-                if (value) {
-                    const options = await loadCategories(2, value)
-                    setCategoryOptions(prev => ({
-                        ...prev,
-                        second: options,
-                        third: []
-                    }))
-                } else {
-                    setCategoryOptions(prev => ({
-                        ...prev,
-                        second: [],
-                        third: []
-                    }))
+            name: "categories",
+            label: "商品分类",
+            type: "custom" as FieldType,
+            render: (_field, form: UseFormReturn) => {
+                const categoryValue: CategoryCascaderValue = {
+                    firstCategoryId: form.watch('firstCategoryId'),
+                    secondCategoryId: form.watch('secondCategoryId'),
+                    thirdCategoryId: form.watch('thirdCategoryId'),
+                    firstCategoryName: form.watch('firstCategoryName'),
+                    secondCategoryName: form.watch('secondCategoryName'),
+                    thirdCategoryName: form.watch('thirdCategoryName'),
                 }
-            }
-        },
-
-        // 二级分类和三级分类
-        {
-            name: "secondCategoryId",
-            label: "二级分类",
-            type: "multiSelect",
-            placeholder: "请选择二级分类",
-            required: false,
-            multiple: false,
-            options: categoryOptions.second,
-            disabled: (form: UseFormReturn) => !form.watch('firstCategoryId'),
-            onSearch: async (keyword: string) => {
-                const firstId = formRef.current?.form.getValues('firstCategoryId')
-                if (!firstId || !keyword) return categoryOptions.second
-
-                const options = await loadCategories(2, firstId, keyword)
-                setCategoryOptions(prev => ({
-                    ...prev,
-                    second: options
-                }))
-                return options
-            },
-            onChange: async (value: string, form: UseFormReturn) => {
-                // 更新二级分类名称和清空三级分类
-                const selectedOption = categoryOptions.second.find(opt => opt.value === value)
-                form.setValue('secondCategoryName', selectedOption?.label || '')
-                form.setValue('thirdCategoryId', '')
-                form.setValue('thirdCategoryName', '')
-
-                // 更新三级分类选项
-                if (value) {
-                    const options = await loadCategories(3, value)
-                    setCategoryOptions(prev => ({
-                        ...prev,
-                        third: options
-                    }))
-                } else {
-                    setCategoryOptions(prev => ({
-                        ...prev,
-                        third: []
-                    }))
-                }
-            }
-        },
-        {
-            name: "thirdCategoryId",
-            label: "三级分类",
-            type: "multiSelect" as FieldType,
-            placeholder: "请选择三级分类",
-            required: false,
-            multiple: false,
-            options: categoryOptions.third,
-            disabled: (form: UseFormReturn) => !form.watch('secondCategoryId'),
-            onSearch: async (keyword: string) => {
-                const secondId = formRef.current?.form.getValues('secondCategoryId')
-                if (!secondId || !keyword) return categoryOptions.third
-
-                const options = await loadCategories(3, secondId, keyword)
-                setCategoryOptions(prev => ({
-                    ...prev,
-                    third: options
-                }))
-                return options
-            },
-            onChange: (value: string, form: UseFormReturn) => {
-                // 更新三级分类名称
-                const selectedOption = categoryOptions.third.find(opt => opt.value === value)
-                form.setValue('thirdCategoryName', selectedOption?.label || '')
+                return (
+                    <CategoryCascader
+                        value={categoryValue}
+                        onChange={(val: CategoryCascaderValue) => {
+                            form.setValue('firstCategoryId', val.firstCategoryId || '', { shouldValidate: true })
+                            form.setValue('firstCategoryName', val.firstCategoryName || '')
+                            form.setValue('secondCategoryId', val.secondCategoryId || '', { shouldValidate: true })
+                            form.setValue('secondCategoryName', val.secondCategoryName || '')
+                            form.setValue('thirdCategoryId', val.thirdCategoryId || '', { shouldValidate: true })
+                            form.setValue('thirdCategoryName', val.thirdCategoryName || '')
+                        }}
+                        groupId="goods"
+                        placeholder="请选择商品分类"
+                        maxLevel={3}
+                        width="100%"
+                    />
+                )
             }
         },
 
@@ -343,7 +205,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             label: "商品编码",
             type: "text",
             placeholder: "请输入商品编码",
-            required: true
+            required: false
         },
 
         // 价格相关
@@ -361,15 +223,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
         },
         {
             name: "costPrice",
-            label: "成本价格",
-            type: "number",
-            placeholder: "请输入成本价格",
-            required: false,
-            inputProps: {
-                min: 0.01,
-                max: 999999.99,
-                step: 0.01
-            }
+            type: "hidden",
         },
 
         // 市场价格和销售模式
@@ -386,11 +240,8 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
         },
         {
             name: "saleType",
-            label: "销售模式",
-            type: "select",
-            required: true,
-            options: SALE_TYPE_OPTIONS as any,
-            defaultValue: initialData?.saleType ?? 2
+            type: "hidden",
+            defaultValue: initialData?.saleType ?? 1
         },
 
         // 开售时间和数量单位
@@ -423,10 +274,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
         },
         {
             name: "distributionType",
-            label: "配送方式",
-            type: "select",
-            required: true,
-            options: DISTRIBUTION_TYPE_OPTIONS as any,
+            type: "hidden",
             defaultValue: initialData?.distributionType ?? 2
         },
 
@@ -444,9 +292,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
         },
         {
             name: "spuCode",
-            label: "SPU编码",
-            type: "text",
-            placeholder: "请输入SPU编码"
+            type: "hidden",
         },
 
         // 跨列字段
@@ -524,23 +370,14 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             defaultValue: initialData?.recommendFlag ?? 0
         },
 
-        // 二手标识和初始销量
         {
             name: "usedFlag",
-            label: "二手标识",
-            type: "select",
-            options: FLAG_OPTIONS as any,
+            type: "hidden",
             defaultValue: initialData?.usedFlag ?? 0
         },
         {
             name: "initSaleCount",
-            label: "初始销量",
-            type: "number",
-            placeholder: "请输入初始销量",
-            inputProps: {
-                min: 0,
-                step: 1
-            }
+            type: "hidden",
         },
 
         // 隐藏字段
@@ -574,7 +411,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
                 }}
                 loading={loading}
                 initialData={initialData || {
-                    saleType: 2,
+                    saleType: 1,
                     skuType: 1,
                     distributionType: 2,
                     newFlag: 0,

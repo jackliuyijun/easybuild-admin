@@ -1,5 +1,5 @@
 'use client'
 
-import { GoodsSimplePage } from '../goods-simple/goods-simple-index'
+import { GoodsPage } from './goods-index'
 
-export default GoodsSimplePage
+export default GoodsPage

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
+import { Check, ChevronRight } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { cn } from "@/lib/utils"
@@ -13,13 +14,23 @@ import { GoodsDetail } from "./steps/goods-detail"
 import type { GoodsItem } from "@/types/goods"
 import { getDetail, editBasic, editSpu, editSku, editExplain, editDetail } from '@/api/goods'
 import { CustomDialog } from "@/components/custom/custom-dialog"
+import { Package2, Layers, Boxes, ScrollText, Image as ImageIcon, Package } from "lucide-react"
+
+const iconMap: { [key: string]: any } = {
+  Package2,
+  Layers,
+  Boxes,
+  ScrollText,
+  Image: ImageIcon,
+  Package
+}
 
 const steps = [
-  { title: "基本信息", description: "设置商品的基本属性", required: true },
-  { title: "设置SPU", description: "配置商品SPU信息", required: false },
-  { title: "设置SKU", description: "配置商品SKU信息", required: false },
-  { title: "设置说明", description: "添加商品说明", required: false },
-  { title: "设置详情", description: "编辑商品详", required: true }
+  { title: "基本信息", description: "商品基础属性", required: true, icon: "Package2" },
+  { title: "设置SPU", description: "配置SPU信息", required: false, icon: "Layers" },
+  { title: "设置SKU", description: "配置SKU信息", required: false, icon: "Boxes" },
+  { title: "设置说明", description: "添加商品说明", required: false, icon: "ScrollText" },
+  { title: "设置详情", description: "编辑商品详情", required: true, icon: "Image" }
 ]
 
 interface GoodsWizardProps {
@@ -264,8 +275,6 @@ export function GoodsWizard({ open, onClose, initialData, onComplete }: GoodsWiz
         height: 'min(90vh, 900px)',
         minHeight: '500px'
       }}
-      headerHeight="6.5rem"
-      footerHeight="4rem"
       className="flex-1 overflow-auto"
       loading={loading}
       submitting={isSubmitting}
@@ -275,106 +284,132 @@ export function GoodsWizard({ open, onClose, initialData, onComplete }: GoodsWiz
             <DialogTitle>商品{initialData ? '编辑' : '新增'}向导</DialogTitle>
           </VisuallyHidden>
           <div className="flex flex-col w-full">
-            {/* 标题栏 */}
-            <div className="h-[52px] flex items-center">
-              <div className="leading-[32px] font-semibold">
-                商品{initialData ? '编辑' : '新增'}向导 - {steps[currentStep].title}
+            {/* 标题栏 - 紧凑化 */}
+            <div className="flex items-center gap-3 py-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Package className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <DialogTitle className="text-lg font-bold tracking-tight">
+                  商品{initialData ? '编辑' : '新增'}向导 - {steps[currentStep].title}
+                </DialogTitle>
+                <div className="text-xs text-muted-foreground mt-0">
+                  {initialData ? "在这里修改商品详细信息。" : "请按照步骤填写商品信息。"}
+                </div>
               </div>
             </div>
 
-            {/* 步骤导航 */}
-            <div className="h-[52px] flex items-center gap-4 overflow-x-auto">
-              {steps.map((step, index) => (
-                <div
-                  key={step.title}
-                  className={cn(
-                    "flex items-center gap-2 py-1.5 px-3 rounded-md cursor-pointer select-none",
-                    "transition-all duration-300 ease-in-out",
-                    currentStep === index
-                      ? "text-primary bg-muted/30"
-                      : "hover:bg-muted/20"
-                  )}
-                  onClick={() => handleStepChange(index)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      handleStepChange(index)
-                    }
-                  }}
-                  aria-current={currentStep === index ? 'step' : undefined}
-                >
+            {/* 步骤导航 - 紧凑化 */}
+            <div className="relative flex items-center justify-between w-full px-2 py-2 mt-1">
+              {/* 背景连线 */}
+              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-muted -translate-y-[18px] z-0" />
+              <div
+                className="absolute top-1/2 left-0 h-0.5 bg-primary transition-all duration-500 ease-in-out -translate-y-[18px] z-0"
+                style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+              />
+
+              {steps.map((step, index) => {
+                const isActive = currentStep === index
+                const isCompleted = currentStep > index
+
+                return (
                   <div
+                    key={step.title}
                     className={cn(
-                      "flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium",
-                      "transition-all duration-300 ease-in-out",
-                      currentStep === index
-                        ? "bg-primary text-primary-foreground scale-110"
-                        : index < currentStep
-                          ? "bg-primary/20 text-primary"
-                          : "bg-muted text-muted-foreground"
+                      "relative flex flex-col items-center gap-2 z-10 select-none cursor-pointer group",
+                      "transition-all duration-300"
                     )}
+                    onClick={() => handleStepChange(index)}
                   >
-                    {index + 1}
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <div className="font-medium text-sm flex items-center whitespace-nowrap">
-                      {step.title}
-                      {step.required && (
-                        <span className="text-destructive text-[13px] ml-0.5">*</span>
+                    {/* 圆圈图标 */}
+                    <div
+                      className={cn(
+                        "flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 z-20",
+                        isActive
+                          ? "p-1.5 bg-primary border-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.5)] scale-110"
+                          : isCompleted
+                            ? "bg-background border-primary text-primary relative"
+                            : "bg-background border-muted text-muted-foreground group-hover:border-muted-foreground/50"
                       )}
+                    >
+                      {isCompleted && (
+                        <div className="absolute inset-0 bg-primary/10 rounded-full -z-10" />
+                      )}
+                      {isCompleted ? (
+                        <Check className="w-4 h-4 stroke-[3px]" />
+                      ) : (() => {
+                        const IconComponent = iconMap[step.icon];
+                        return IconComponent ? <IconComponent className="w-4 h-4" /> : <span className="text-sm font-bold">{index + 1}</span>
+                      })()}
                     </div>
-                    <div className="text-xs text-muted-foreground whitespace-nowrap">
-                      {step.description}
+
+                    {/* 文字信息 */}
+                    <div className="flex flex-col items-center text-center">
+                      <div className={cn(
+                        "text-xs font-medium transition-colors flex items-center gap-1",
+                        isActive ? "text-primary" : isCompleted ? "text-foreground" : "text-muted-foreground"
+                      )}>
+                        {step.title}
+                        {step.required && <span className="text-destructive text-[10px] ml-0.5">*</span>}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
+
+            <div className="h-px bg-border mt-1 -mx-6 -mb-3" />
           </div>
         </>
       }
       footer={
-        <div className="flex justify-between w-full">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={currentStep === 0 ? onClose : () => handleStepChange(currentStep - 1)}
-            disabled={isSubmitting}
-          >
-            {currentStep === 0 ? "取消" : "上一步"}
-          </Button>
-
-          <div className="flex gap-2">
-            {currentStep === 0 && (
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={handleFinishBasic}
-                disabled={loading || isSubmitting}
-                data-action="finish"
-              >
-                完成编辑
-              </Button>
-            )}
-            {currentStep >= 1 && currentStep <= 3 && (
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={handleSkip}
-                disabled={loading || isSubmitting}
-              >
-                跳过
-              </Button>
-            )}
+        <div className="flex flex-col w-full">
+          <div className="h-px bg-border -mt-3 mb-4 -mx-6" />
+          <div className="flex justify-between items-center w-full">
             <Button
-              type="submit"
-              form="custom-form"
+              variant="outline"
               size="lg"
-              disabled={loading || isSubmitting}
+              onClick={currentStep === 0 ? onClose : () => handleStepChange(currentStep - 1)}
+              disabled={isSubmitting}
+              className="px-8 border-muted-foreground/20 hover:bg-muted"
             >
-              {currentStep === steps.length - 1 ? "完成" : "下一步"}
+              {currentStep === 0 ? "取消" : "上一步"}
             </Button>
+
+            <div className="flex gap-3">
+              {currentStep === 0 && (
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  onClick={handleFinishBasic}
+                  disabled={loading || isSubmitting}
+                  data-action="finish"
+                  className="px-6"
+                >
+                  完成编辑
+                </Button>
+              )}
+              {currentStep >= 1 && currentStep <= 3 && (
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  onClick={handleSkip}
+                  disabled={loading || isSubmitting}
+                  className="px-6 hover:bg-muted"
+                >
+                  跳过
+                </Button>
+              )}
+              <Button
+                type="submit"
+                form="custom-form"
+                size="lg"
+                disabled={loading || isSubmitting}
+                className="px-10 shadow-sm transition-all active:scale-95"
+              >
+                {currentStep === steps.length - 1 ? "完成" : "下一步"}
+              </Button>
+            </div>
           </div>
         </div>
       }
