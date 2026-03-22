@@ -15,8 +15,8 @@ interface LoginFormProps {
 export function LoginForm({ onSubmit, isLoading }: LoginFormProps) {
     const [showPassword, setShowPassword] = useState(false)
     const [formData, setFormData] = useState({
-        loginAccount: '',
-        password: '',
+        loginAccount: 'dev',
+        password: 'dev@123',
     })
     const [isSubmitting, setIsSubmitting] = useState(false)
 

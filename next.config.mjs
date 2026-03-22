@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: false, // 禁用严格模式，提升开发环境性能
   poweredByHeader: false,
-  devIndicators: false,
+  //devIndicators: false,
   compress: true,
   images: {
     domains: ['oss.01bai.com'],
