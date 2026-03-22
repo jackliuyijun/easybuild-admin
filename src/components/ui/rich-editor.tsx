@@ -195,20 +195,22 @@ export function RichEditor({
             <LinkIcon className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex-1 overflow-y-auto px-3 py-2">
+        <div 
+          className="flex-1 overflow-y-auto px-3 py-2"
+          onClick={() => {
+            if (editor && !editor.isFocused) {
+              editor.commands.focus('end')
+            }
+          }}
+        >
           <EditorContent 
             editor={editor} 
             className={cn(
-              "prose prose-sm dark:prose-invert",
+              "prose prose-sm dark:prose-invert max-w-none min-h-full",
               "prose-p:my-2 prose-headings:my-3",
-              "prose-img:my-3 prose-img:rounded-md prose-img:max-h-[300px]",
+              "prose-img:my-3 prose-img:rounded-md prose-img:max-h-[600px] prose-img:mx-auto",
               "focus-visible:outline-none"
             )}
-            onClick={(e) => e.stopPropagation()}
-            onDoubleClick={(e) => {
-              e.stopPropagation()
-              e.preventDefault()
-            }}
           />
         </div>
         <style jsx global>{`
@@ -224,9 +226,13 @@ export function RichEditor({
             padding: 0 1rem;
           }
           .ProseMirror img {
-            display: inline-block;
+            display: block;
             height: auto;
             max-width: 100%;
+            cursor: pointer;
+          }
+          .ProseMirror img.ProseMirror-selectednode {
+            outline: 2px solid #3b82f6;
           }
           .ProseMirror p.is-editor-empty:first-child::before {
             color: #666;

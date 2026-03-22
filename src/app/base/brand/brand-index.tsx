@@ -30,7 +30,7 @@ import Image from 'next/image'
 import { X } from 'lucide-react'
 import { ImagePreview } from "@/components/ui/image-preview"
 import { MultiSelect } from "@/components/custom/multi-select"
-import { getBrandCategoryDropdownList } from "@/api/category"
+import { getCategoryDropdownList } from "@/api/category"
 import { useToast } from "@/hooks/use-toast"
 import { usePageTitle } from '@/store'
 
@@ -278,7 +278,7 @@ export function BrandPage() {
 
     // 添加获取分类选项的 useEffect
     useEffect(() => {
-        getBrandCategoryDropdownList().then(options => {
+        getCategoryDropdownList().then(options => {
             setCategoryOptions(options)
         })
     }, [])
@@ -455,8 +455,8 @@ export function BrandPage() {
                                     className: 'w-full'
                                 }}
                                 onSearch={async (keyword) => {
-                                    const data = await getBrandCategoryDropdownList({
-                                        name: keyword
+                                    const data = await getCategoryDropdownList({
+                                        categoryName: keyword
                                     })
                                     setCategoryOptions(prev => {
                                         const merged = [...prev]

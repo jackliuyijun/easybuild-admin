@@ -7,7 +7,6 @@ import { Plus, Search, RotateCw, MoreHorizontal, Edit, Trash2 } from "lucide-rea
 import { Input } from "@/components/ui/input"
 import { useState, useCallback, useEffect } from "react"
 import { getList, save, remove } from "@/api/spuConfig"
-import { getCategoryDropdownList } from "@/api/category"
 import type { SpuConfig } from "@/types/spu-config"
 import { useDebounce } from "@/hooks/use-debounce"
 import { showMessage, showError } from '@/components/custom/notifications'
@@ -17,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { SpuConfigEdit } from "./spu-config-edit"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
-import { MultiSelect } from "@/components/custom/multi-select"
+import { CategoryCascader, CategoryCascaderValue } from "@/components/custom/category-cascader"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { usePageTitle } from '@/store'
 
@@ -43,13 +42,11 @@ export function SpuConfigPage() {
     const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
     const [selectedIds, setSelectedIds] = useState<string[]>([])
 
-    // 筛选状态
-    const [firstCategoryId, setFirstCategoryId] = useState<string>('')
-    const [secondCategoryId, setSecondCategoryId] = useState<string>('')
-
-    // 下拉选项
-    const [firstCategoryOptions, setFirstCategoryOptions] = useState<{ value: string; label: string }[]>([])
-    const [secondCategoryOptions, setSecondCategoryOptions] = useState<{ value: string; label: string }[]>([])
+    const [categoryValue, setCategoryValue] = useState<CategoryCascaderValue>({
+        firstCategoryId: '',
+        secondCategoryId: '',
+        thirdCategoryId: ''
+    })
     const { setPageTitle } = usePageTitle();
 
     useEffect(() => {
@@ -63,8 +60,8 @@ export function SpuConfigPage() {
                 page: currentPage,
                 limit: pageSize,
                 searchKeyWord: debouncedKeyword || undefined,
-                firstCategoryId: firstCategoryId || undefined,
-                secondCategoryId: secondCategoryId || undefined
+                firstCategoryId: categoryValue.firstCategoryId || undefined,
+                secondCategoryId: categoryValue.secondCategoryId || undefined
             }) as any
             setSpuConfigs(res.data)
             setTotal(res.count)
@@ -74,41 +71,13 @@ export function SpuConfigPage() {
             setLoading(false)
             setRefreshing(false)
         }
-    }, [currentPage, debouncedKeyword, pageSize, firstCategoryId, secondCategoryId])
+    }, [currentPage, debouncedKeyword, pageSize, categoryValue])
 
     useEffect(() => {
         fetchSpuConfigs()
     }, [fetchSpuConfigs])
 
-    // 加载一级分类
-    useEffect(() => {
-        const loadFirstCategories = async () => {
-            try {
-                const options = await getCategoryDropdownList({ level: 1, groupId: 'goods' })
-                setFirstCategoryOptions(options)
-            } catch (error) {
-                console.error("Failed to load first categories:", error)
-            }
-        }
-        loadFirstCategories()
-    }, [])
 
-    // 加载二级分类
-    useEffect(() => {
-        const loadSecondCategories = async () => {
-            if (firstCategoryId) {
-                try {
-                    const options = await getCategoryDropdownList({ level: 2, parentId: firstCategoryId, groupId: 'goods' })
-                    setSecondCategoryOptions(options)
-                } catch (error) {
-                    console.error("Failed to load second categories:", error)
-                }
-            } else {
-                setSecondCategoryOptions([])
-            }
-        }
-        loadSecondCategories()
-    }, [firstCategoryId])
 
     const handleRefresh = () => {
         fetchSpuConfigs(true)
@@ -127,6 +96,12 @@ export function SpuConfigPage() {
 
     const handleSearch = (value: string) => {
         setSearchKeyword(value)
+        setCurrentPage(1)
+        setSelectedIds([])
+    }
+
+    const handleCategoryChange = (value: CategoryCascaderValue) => {
+        setCategoryValue(value)
         setCurrentPage(1)
         setSelectedIds([])
     }
@@ -301,26 +276,13 @@ export function SpuConfigPage() {
                             />
                         </div>
 
-                        <div className="w-[180px]">
-                            <MultiSelect
-                                options={firstCategoryOptions}
-                                value={firstCategoryId}
-                                onChange={(v) => { setFirstCategoryId(v); setSecondCategoryId(''); setCurrentPage(1); }}
-                                placeholder="一级分类"
-                                multiple={false}
-                                className="h-[40px]"
-                            />
-                        </div>
-
-                        <div className="w-[180px]">
-                            <MultiSelect
-                                options={secondCategoryOptions}
-                                value={secondCategoryId}
-                                onChange={(v) => { setSecondCategoryId(v); setCurrentPage(1); }}
-                                placeholder={firstCategoryId ? "二级分类" : "请选一级"}
-                                multiple={false}
-                                disabled={!firstCategoryId}
-                                className="h-[40px]"
+                        <div className="w-[240px]">
+                            <CategoryCascader
+                                value={categoryValue}
+                                onChange={handleCategoryChange}
+                                placeholder="选择分类..."
+                                maxLevel={2}
+                                width="240px"
                             />
                         </div>
 

@@ -259,6 +259,7 @@ function renderInputField(
             }
           }}
           {...field.uploadProps}
+          maxLength={field.uploadProps?.maxCount || field.uploadProps?.maxLength}
           disabled={disabled}
         />
       )

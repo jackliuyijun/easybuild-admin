@@ -60,7 +60,7 @@ const formSchema = z.object({
     spuCode: z.string().optional(),
 
     coverImg: z.string({ message: "请上传封面图" }).min(1, "请上传封面图"),
-    carouselImg: z.string({ message: "请上传轮播图" }).min(1, "请上传轮播图"),
+    carouselImg: z.string().optional(),
     goodsTrait: z.string().optional(),
 
     newFlag: z.coerce.number().default(0),
@@ -134,6 +134,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             placeholder: "请选择品牌",
             required: false,
             multiple: false,
+            className: "col-span-2",
             options: brandOptions,
             onSearch: async (keyword: string) => {
                 const options = await getBrandDropdownList({ name: keyword })
@@ -189,7 +190,8 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
                         width="100%"
                     />
                 )
-            }
+            },
+            className: "col-span-2"
         },
 
         // 商品名称和编码
@@ -198,14 +200,16 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             label: "商品名称",
             type: "text",
             placeholder: "请输入商品名称",
-            required: true
+            required: true,
+            className: "col-span-2"
         },
         {
             name: "goodsNo",
             label: "商品编码",
             type: "text",
             placeholder: "请输入商品编码",
-            required: false
+            required: false,
+            className: "col-span-2"
         },
 
         // 价格相关
@@ -215,6 +219,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             type: "number",
             placeholder: "请输入销售价格",
             required: true,
+            className: "col-span-2",
             inputProps: {
                 min: 0.01,
                 max: 999999.99,
@@ -232,6 +237,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             label: "市场价格",
             type: "number",
             placeholder: "请输入市场价格",
+            className: "col-span-2",
             inputProps: {
                 min: 0,
                 max: 999999.99,
@@ -249,6 +255,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             name: "startSaleTime",
             label: "开售时间",
             type: "custom" as FieldType,
+            className: "col-span-2",
             render: ({ value, onChange }: { value: string; onChange: (date: string | undefined) => void }) => (
                 <DateTimePicker
                     value={value}
@@ -260,7 +267,8 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             name: "unit",
             label: "数量单位",
             type: "text",
-            placeholder: "请输入数量单位"
+            placeholder: "请输入数量单位",
+            className: "col-span-2"
         },
 
         // 规格类型和配送方式
@@ -269,6 +277,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             label: "规格类型",
             type: "select",
             required: true,
+            className: "col-span-2",
             options: SKU_TYPE_OPTIONS as any,
             defaultValue: initialData?.skuType ?? 2
         },
@@ -285,6 +294,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             type: "number",
             placeholder: "请输入排序",
             defaultValue: initialData?.sort ?? 0,
+            className: "col-span-2",
             inputProps: {
                 min: 0,
                 step: 1
@@ -301,7 +311,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             label: "封面图",
             type: "upload",
             required: true,
-            className: "col-span-2 h-[120px] mb-7",
+            className: "col-span-1 h-[120px] mb-7",
             error: {
                 position: 'bottom',
                 offset: {
@@ -322,10 +332,10 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
         },
         {
             name: "carouselImg",
-            label: "轮播图",
+            label: "轮播图(最多5张)",
             type: "upload",
-            required: true,
-            className: "col-span-2 h-[120px] mb-7",
+            required: false,
+            className: "col-span-3 h-[120px] mb-7",
             error: {
                 position: 'bottom',
                 offset: {
@@ -334,7 +344,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             },
             uploadProps: {
                 accept: "image/*",
-                maxCount: 10,
+                maxCount: 5,
                 listType: "picture-card",
                 showUploadList: true,
                 children: "上传图片",
@@ -351,7 +361,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             label: "商品特点",
             type: "textarea",
             placeholder: "请输入商品特点",
-            className: "col-span-2 mb-5",
+            className: "col-span-4 mb-5",
         },
 
         // 标识相关
@@ -359,6 +369,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             name: "newFlag",
             label: "新品标识",
             type: "select",
+            className: "col-span-2",
             options: FLAG_OPTIONS as any,
             defaultValue: initialData?.newFlag ?? 0
         },
@@ -366,6 +377,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
             name: "recommendFlag",
             label: "推荐标识",
             type: "select",
+            className: "col-span-2",
             options: FLAG_OPTIONS as any,
             defaultValue: initialData?.recommendFlag ?? 0
         },
@@ -407,7 +419,7 @@ export const GoodsBasicInfo = forwardRef<CustomFormRef, GoodsBasicInfoProps>(({
                 schema={formSchema}
                 fields={fields}
                 layout={{
-                    className: "grid grid-cols-2 gap-x-8 gap-y-6"
+                    className: "grid grid-cols-4 gap-x-2 gap-y-6"
                 }}
                 loading={loading}
                 initialData={initialData || {

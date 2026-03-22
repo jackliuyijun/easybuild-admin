@@ -18,7 +18,7 @@ import { TagEdit } from "./tag-edit"
 import { DEFAULT_PAGE_SIZE } from "@/config/pagination"
 import { Checkbox } from "@/components/ui/checkbox"
 import { MultiSelect } from "@/components/custom/multi-select"
-import { getTagCategoryDropdownList } from "@/api/category"
+import { getCategoryDropdownList } from "@/api/category"
 import { Switch } from "@/components/ui/switch"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { usePageTitle } from '@/store'
@@ -64,7 +64,7 @@ export function TagPage() {
     // 获取分类选项
     useEffect(() => {
         setPageTitle('标签管理');
-        getTagCategoryDropdownList().then(options => {
+        getCategoryDropdownList().then(options => {
             setCategoryOptions(options)
         })
     }, [setPageTitle])
@@ -392,8 +392,8 @@ export function TagPage() {
                                     className: 'w-full'
                                 }}
                                 onSearch={async (keyword) => {
-                                    const data = await getTagCategoryDropdownList({
-                                        name: keyword
+                                    const data = await getCategoryDropdownList({
+                                        categoryName: keyword
                                     })
                                     setCategoryOptions(prev => {
                                         const merged = [...prev]

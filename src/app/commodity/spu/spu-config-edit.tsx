@@ -6,12 +6,13 @@ import { CustomForm } from "@/components/custom/form/custom-form"
 import type { CustomFormRef } from "@/components/custom/form/types"
 import { Button } from "@/components/ui/button"
 import type { SpuConfig } from "@/types/spu-config"
-import { getCategoryDropdownList } from "@/api/category"
 import { SpuValueEdit } from './spu-value-edit'
 import { DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import * as z from "zod"
-import type { FormField } from "@/components/custom/form/types"
+import type { FormField, FieldType } from "@/components/custom/form/types"
 import { PackageSearch } from "lucide-react"
+import type { UseFormReturn } from "react-hook-form"
+import { CategoryCascader, CategoryCascaderValue } from "@/components/custom/category-cascader"
 
 // 定义表单验证schema
 const formSchema = z.object({
@@ -47,40 +48,12 @@ export const SpuConfigEdit = ({
     loading: parentLoading
 }: SpuConfigEditProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isInitializing, setIsInitializing] = useState(false)
     const [spuValueEditOpen, setSpuValueEditOpen] = useState(false)
     const [currentSpuValue, setCurrentSpuValue] = useState<string>('')
-    const [categoryOptions, setCategoryOptions] = useState({
-        first: [] as { value: string; label: string }[],
-        second: [] as { value: string; label: string }[]
-    })
     const formRef = useRef<CustomFormRef>(null)
 
     // 合并loading状态
-    const loading = parentLoading || isSubmitting || isInitializing
-
-    // 加载分类选项的通用函数
-    const loadCategories = async (level: number, parentId?: string, keyword: string = '') => {
-        try {
-            const options = await getCategoryDropdownList({
-                level,
-                parentId,
-                categoryName: keyword,
-                groupId: 'goods'
-            })
-            return options
-        } catch (error) {
-            console.error('Failed to load categories:', error)
-            return []
-        }
-    }
-
-    // 使用 useRef 来存储上一次的值
-    const lastValueRef = useRef<{
-        firstCategory?: string
-        secondCategory?: string
-        thirdCategory?: string
-    }>({})
+    const loading = parentLoading || isSubmitting
 
     // 字段配置
     const fields: FormField[] = [
@@ -89,8 +62,35 @@ export const SpuConfigEdit = ({
             label: "SPU名称",
             required: true,
             type: "text",
-            placeholder: "请输入SPU名称",
-            className: "col-span-2"
+            placeholder: "请输入SPU名称"
+        },
+        {
+            name: "categories" as any,
+            label: "商品分类",
+            type: "custom" as FieldType,
+            render: (_field, form: UseFormReturn) => {
+                const categoryValue: CategoryCascaderValue = {
+                    firstCategoryId: form.watch('firstCategoryId'),
+                    secondCategoryId: form.watch('secondCategoryId'),
+                    firstCategoryName: form.watch('firstCategoryName'),
+                    secondCategoryName: form.watch('secondCategoryName'),
+                }
+                return (
+                    <CategoryCascader
+                        value={categoryValue}
+                        onChange={(val: CategoryCascaderValue) => {
+                            form.setValue('firstCategoryId', val.firstCategoryId || '', { shouldValidate: true })
+                            form.setValue('firstCategoryName', val.firstCategoryName || '')
+                            form.setValue('secondCategoryId', val.secondCategoryId || '', { shouldValidate: true })
+                            form.setValue('secondCategoryName', val.secondCategoryName || '')
+                        }}
+                        groupId="goods"
+                        placeholder="请选择商品分类"
+                        maxLevel={2}
+                        width="100%"
+                    />
+                )
+            }
         },
         {
             name: "spuValue",
@@ -119,79 +119,26 @@ export const SpuConfigEdit = ({
                 </Button>
             )
         },
-        {
-            name: "firstCategoryId",
-            label: "一级分类",
-            type: "multiSelect",
-            placeholder: "请选择一级分类",
-            options: categoryOptions.first,
-            multiple: false,
-            onSearch: async (keyword) => {
-                if (!keyword) return categoryOptions.first
-                const options = await loadCategories(1, undefined, keyword)
-                setCategoryOptions(prev => ({
-                    ...prev,
-                    first: options
-                }))
-                return options
-            },
-            onChange: async (value, form) => {
-                // 更新一级分类名称和清空下级分类
-                const selectedOption = categoryOptions.first.find(opt => opt.value === value)
-                form.setValue('firstCategoryName', selectedOption?.label || '')
-                form.setValue('secondCategoryId', '')
-                form.setValue('secondCategoryName', '')
-
-                // 更新分类选项
-                if (value) {
-                    const options = await loadCategories(2, value)
-                    setCategoryOptions(prev => ({
-                        ...prev,
-                        second: options
-                    }))
-                } else {
-                    setCategoryOptions(prev => ({
-                        ...prev,
-                        second: []
-                    }))
-                }
-            }
-        },
-        {
-            name: "secondCategoryId",
-            label: "二级分类",
-            type: "multiSelect",
-            placeholder: "请选择二级分类",
-            options: categoryOptions.second,
-            multiple: false,
-            disabled: (form) => !form.watch('firstCategoryId'),
-            onSearch: async (keyword) => {
-                const firstId = formRef.current?.form.getValues('firstCategoryId')
-                if (!firstId || !keyword) return categoryOptions.second
-
-                const options = await loadCategories(2, firstId, keyword)
-                setCategoryOptions(prev => ({
-                    ...prev,
-                    second: options
-                }))
-                return options
-            },
-            onChange: async (value, form) => {
-                // 更新二级分类名称
-                const selectedOption = categoryOptions.second.find(opt => opt.value === value)
-                form.setValue('secondCategoryName', selectedOption?.label || '')
-            }
-        },
 
         // 隐藏字段 - 用于存储分类名称
         {
+            name: "firstCategoryId",
+            type: "hidden",
+            className: "hidden"
+        },
+        {
+            name: "secondCategoryId",
+            type: "hidden",
+            className: "hidden"
+        },
+        {
             name: "firstCategoryName",
-            type: "text",
+            type: "hidden",
             className: "hidden"
         },
         {
             name: "secondCategoryName",
-            type: "text",
+            type: "hidden",
             className: "hidden"
         }
     ]
@@ -217,35 +164,6 @@ export const SpuConfigEdit = ({
     }
 
     // 初始化数据
-    useEffect(() => {
-        if (open) {
-            const initializeCategories = async () => {
-                setIsInitializing(true)
-                try {
-                    // 加载一级分类
-                    const firstOptions = await loadCategories(1)
-                    setCategoryOptions(prev => ({
-                        ...prev,
-                        first: firstOptions
-                    }))
-
-                    // 如果是编辑模式，加载已选分类的选项
-                    if (editingSpuConfig) {
-                        if (editingSpuConfig.firstCategoryId) {
-                            const secondOptions = await loadCategories(2, editingSpuConfig.firstCategoryId)
-                            setCategoryOptions(prev => ({
-                                ...prev,
-                                second: secondOptions
-                            }))
-                        }
-                    }
-                } finally {
-                    setIsInitializing(false)
-                }
-            }
-            initializeCategories()
-        }
-    }, [open, editingSpuConfig])
 
     useEffect(() => {
         if (open && editingSpuConfig) {
