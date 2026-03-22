@@ -19,7 +19,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { usePageTitle, useSearchCollapse, useSearchArea } from '@/store'
 import { getList } from '@/api/order'
-import { getContainerDropdownList } from '@/api/container'
 import { getMerchantDropdownList } from '@/api/merchant'
 import type { OrderInfo, OrderQueryParams, AmountInfo } from '@/types/order'
 import {
@@ -54,8 +53,6 @@ export default function OrderPage() {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState<string>('')
-  const [containerId, setContainerId] = useState<string>('all')
-  const [containers, setContainers] = useState<{ value: string, label: string }[]>([])
   const [merchantId, setMerchantId] = useState<string>('all')
   const [merchants, setMerchants] = useState<{ value: string, label: string }[]>([])
   const { isSearchCollapsed, setIsSearchCollapsed } = useSearchCollapse()
@@ -80,7 +77,6 @@ export default function OrderPage() {
         orderStatus: orderStatus && orderStatus !== 'all' ? Number(orderStatus) : undefined,
         startDate: startDate ? format(startDate, 'yyyy-MM-dd') : undefined,
         endDate: endDate ? format(endDate, 'yyyy-MM-dd') : undefined,
-        containerId: containerId !== 'all' ? containerId : undefined,
         merchantId: merchantId !== 'all' ? merchantId : undefined,
       }
 
@@ -100,23 +96,13 @@ export default function OrderPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [currentPage, debouncedKeyword, orderStatus, containerId, merchantId, startDate, endDate, pageSize])
+  }, [currentPage, debouncedKeyword, orderStatus, merchantId, startDate, endDate, pageSize])
 
   useEffect(() => {
     fetchOrders()
   }, [fetchOrders])
 
-  useEffect(() => {
-    const fetchContainers = async () => {
-      try {
-        const data = await getContainerDropdownList()
-        setContainers(data)
-      } catch (error) {
-        console.error('Failed to fetch containers:', error)
-      }
-    }
-    fetchContainers()
-  }, [])
+
 
   useEffect(() => {
     const fetchMerchants = async () => {
@@ -153,7 +139,6 @@ export default function OrderPage() {
     setOrderStatus('all')
     setStartDate(undefined)
     setEndDate(undefined)
-    setContainerId('all')
     setMerchantId('all')
     setCurrentPage(1)
   }
@@ -233,7 +218,7 @@ export default function OrderPage() {
     },
     {
       key: 'merchantName',
-      title: '所属超市',
+      title: '所属商户',
       width: 150,
       align: 'center',
       render: (value) => (
@@ -294,26 +279,14 @@ export default function OrderPage() {
               </SelectContent>
             </Select>
 
-            <Select value={containerId} onValueChange={setContainerId}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="选择货柜" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部货柜</SelectItem>
-                {containers.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
 
             <Select value={merchantId} onValueChange={setMerchantId}>
               <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="选择超市" />
+                <SelectValue placeholder="选择商户" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">全部超市</SelectItem>
+                <SelectItem value="all">全部商户</SelectItem>
                 {merchants.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}

@@ -220,7 +220,6 @@ export function DictDetail({
             key: 'index' as any,
             title: '序号',
             width: 80,
-            fixed: 'left',
             align: 'center',
             render: (_, __, index) => (currentPage - 1) * pageSize + index + 1
         },
@@ -258,7 +257,6 @@ export function DictDetail({
                         checked={isEnabled}
                         onCheckedChange={() => handleToggleForbiddenFlag(record)}
                         className={cn(
-                            "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-400",
                             "h-6 w-11",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                             "disabled:cursor-not-allowed disabled:opacity-50",
@@ -273,7 +271,6 @@ export function DictDetail({
             key: 'action' as any,
             title: '操作',
             width: 120,
-            fixed: 'right',
             align: 'center',
             render: (_, record) => (
                 <div className="space-x-2">
@@ -304,7 +301,7 @@ export function DictDetail({
             modal
         >
             <DialogContent
-                className="max-w-[1200px] h-[80vh] flex flex-col p-0"
+                className="max-w-[1200px] h-[80vh] flex flex-col p-0 overflow-hidden"
                 onPointerDownOutside={(e) => {
                     e.preventDefault()
                 }}
@@ -312,6 +309,7 @@ export function DictDetail({
                     e.preventDefault()
                 }}
             >
+                <DialogTitle className="sr-only">字典详情 - {dict?.dictName}</DialogTitle>
                 {/* 顶部基础信息 */}
                 <div className="flex items-center gap-8 px-6 py-4 border-b">
                     <div className="space-y-1">
@@ -362,13 +360,17 @@ export function DictDetail({
                     {/* 表格区域 */}
                     <div className="flex-1 min-h-0 overflow-auto">
                         <CustomTable
+                            config={{ rowHeight: 48, headerHeight: 48, footerHeight: 48 }}
                             data={dictItems}
                             columns={columns as any}
                             loading={loading}
                             scroll={{
-                                y: 'calc(80vh - 200px)'
+                                x: 1000,
+                                y: 'calc(80vh - 300px)'
                             }}
                             rowKey="dictItemId"
+                            className="h-full [&_td]:py-2"
+                            emptyText="暂无数据"
                             pagination={{
                                 current: currentPage,
                                 pageSize: pageSize,

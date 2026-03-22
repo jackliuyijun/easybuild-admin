@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import dynamic from 'next/dynamic'
 import { Button } from "@/components/ui/button"
@@ -328,7 +328,6 @@ export function DictPage() {
                         checked={isEnabled}
                         onCheckedChange={() => handleToggleForbiddenFlag(record)}
                         className={cn(
-                            "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-400",
                             "h-6 w-11",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                             "disabled:cursor-not-allowed disabled:opacity-50",
