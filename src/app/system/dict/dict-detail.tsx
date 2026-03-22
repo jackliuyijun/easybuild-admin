@@ -221,7 +221,7 @@ export function DictDetail({
             title: '序号',
             width: 80,
             align: 'center',
-            render: (_, __, index) => (currentPage - 1) * pageSize + index + 1
+            render: (_: any, __: any, index: number) => (currentPage - 1) * pageSize + index + 1
         },
         {
             key: 'dictKey',
@@ -250,7 +250,7 @@ export function DictDetail({
             title: '状态',
             width: 100,
             align: 'center',
-            render: (_, record) => {
+            render: (_: any, record: DictItem) => {
                 const isEnabled = record.forbiddenFlag === FORBIDDEN_FLAG_CONFIG.enable.value;
                 return (
                     <Switch
@@ -272,7 +272,7 @@ export function DictDetail({
             title: '操作',
             width: 120,
             align: 'center',
-            render: (_, record) => (
+            render: (_: any, record: DictItem) => (
                 <div className="space-x-2">
                     <Button
                         variant="ghost"

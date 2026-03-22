@@ -264,7 +264,7 @@ export function DictPage() {
             width: 20,
             //fixed: 'left',
             align: 'center',
-            render: (_, record) => (
+            render: (_: any, record: Dict) => (
                 <Checkbox
                     checked={selectedIds.includes(record.dictId)}
                     onCheckedChange={(checked) => handleSelect(record.dictId, checked as boolean)}
@@ -321,7 +321,7 @@ export function DictPage() {
             title: '状态',
             width: 80,
             align: 'center',
-            render: (_, record) => {
+            render: (_: any, record: Dict) => {
                 const isEnabled = record.forbiddenFlag === FORBIDDEN_FLAG_CONFIG.enable.value;
                 return (
                     <Switch
@@ -343,7 +343,7 @@ export function DictPage() {
             title: '操作',
             width: 140,
             align: 'center',
-            render: (_, record) => (
+            render: (_: any, record: Dict) => (
                 <div className="flex gap-2 justify-center">
                     <Button variant="ghost" size="icon" onClick={() => handleDetail(record)}><Eye className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" onClick={() => handleEdit(record)}><Edit className="h-4 w-4" /></Button>
